@@ -3,6 +3,10 @@
 [build]
 builder = "NIXPACKS"
 
+[build.nixpacks]
+# Astro requires Node.js >= 18.20.8
+node_version = "20"
+
 [deploy]
 startCommand = "npx serve dist"
 restartPolicyType = "ON_FAILURE"
