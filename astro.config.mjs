@@ -28,8 +28,8 @@ export default defineConfig({
     defaultLocale: 'lv',
     locales: ['lv', 'en', 'ru'],
     routing: {
-      prefixDefaultLocale: true,
-      redirectDefaultLocaleToRoot: false,
+      prefixDefaultLocale: false,
+      redirectDefaultLocaleToRoot: true,
     },
   },
   site: process.env.SITE_URL || 'https://promocode.lv',
