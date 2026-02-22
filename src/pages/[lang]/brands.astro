@@ -1,0 +1,91 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getBrands } from '../../lib/strapi';
+import { getStrapiMediaUrl } from '../../lib/strapi';
+import type { Brand } from '../../types/strapi';
+import type { GetStaticPathsResult } from 'astro';
+
+export interface Props {
+  lang: string;
+  brands: Brand[];
+}
+
+const { lang, brands } = Astro.props;
+
+export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+  const locales = ['lv', 'en', 'ru'] as const;
+  const paths: GetStaticPathsResult = [];
+
+  for (const locale of locales) {
+    const brands = await getBrands(locale);
+    paths.push({
+      params: { lang: locale },
+      props: { lang: locale, brands },
+    });
+  }
+
+  return paths;
+}
+
+const titles: Record<string, string> = {
+  lv: 'Zīmoli',
+  en: 'Brands',
+  ru: 'Бренды',
+};
+
+const noBrandsLabels: Record<string, string> = {
+  lv: 'Pašlaik nav zīmolu',
+  en: 'No brands available',
+  ru: 'Брендов пока нет',
+};
+
+// Generate hreflang alternates for listing page
+const hreflangAlternates = ['lv', 'en', 'ru'].map((locale) => ({
+  hreflang: locale,
+  href: `https://promocode.lv/${locale}/brands/`,
+}));
+hreflangAlternates.push({
+  hreflang: 'x-default',
+  href: 'https://promocode.lv/lv/brands/',
+});
+---
+
+<Layout title={titles[lang]} lang={lang} hreflangAlternates={hreflangAlternates}>
+  <div class="py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">{titles[lang]}</h1>
+
+    {brands.length === 0 ? (
+      <div class="text-center text-gray-500 py-12">
+        <p class="text-lg">{noBrandsLabels[lang]}</p>
+      </div>
+    ) : (
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {brands.map((brand) => (
+          <a
+            href={`/${lang}/brands/${brand.slug}`}
+            class="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow block"
+          >
+            <div class="p-6 text-center">
+              {brand.logo ? (
+                <img
+                  src={getStrapiMediaUrl(brand.logo)}
+                  alt={brand.name}
+                  class="w-24 h-24 object-contain mx-auto mb-4"
+                />
+              ) : (
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span class="text-gray-400 text-2xl">{brand.name?.[0]}</span>
+                </div>
+              )}
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">{brand.name}</h3>
+              {brand.description && (
+                <p class="text-gray-600 text-sm">{brand.description}</p>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</Layout>
+---

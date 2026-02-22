@@ -1,0 +1,35 @@
+---
+import type { FooterLink } from '../types/strapi';
+
+interface Props {
+  lang: string;
+  footerLinks: FooterLink[];
+}
+
+const { lang, footerLinks } = Astro.props;
+
+const footerText = {
+  lv: "© 2025 PromoCode.lv. Visas tiesības aizsargātas.",
+  en: "© 2025 PromoCode.lv. All rights reserved.",
+  ru: "© 2025 PromoCode.lv. Все права защищены.",
+};
+---
+
+<footer class="bg-white border-t mt-auto">
+  <div class="container mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <p class="text-gray-600 text-sm">{footerText[lang]}</p>
+
+      <div class="flex space-x-4">
+        {footerLinks.filter((link) => link.slug).map((link) => (
+          <a
+            href={`/${lang}/info/${link.slug}`}
+            class="text-gray-600 hover:text-gray-900 text-sm"
+          >
+            {link.header}
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</footer>

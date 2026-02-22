@@ -1,0 +1,109 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PromoCodeCard from '../../components/PromoCodeCard.astro';
+import { getPromoCodes } from '../../lib/strapi';
+import { markdownToHtml } from '../../lib/markdown';
+import type { PromoCode } from '../../types/strapi';
+import type { GetStaticPathsResult } from 'astro';
+
+export interface Props {
+  lang: string;
+  promoCodes: PromoCode[];
+}
+
+const { lang, promoCodes } = Astro.props;
+
+export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+  const locales = ['lv', 'en', 'ru'] as const;
+  const paths: GetStaticPathsResult = [];
+
+  for (const locale of locales) {
+    // Fetch featured promo codes for this locale
+    const promoCodes = await getPromoCodes(locale, { featured: true, active: true, limit: 6 });
+
+    paths.push({
+      params: { lang: locale },
+      props: { lang: locale, promoCodes },
+    });
+  }
+
+  return paths;
+}
+
+const content: Record<string, { title: string; heading: string; description: string; cta: string }> = {
+  lv: {
+    title: 'Sākums',
+    heading: 'Labākie akciju kodi Latvijā',
+    description: 'Atrodiet labākos akciju kodus un atlaides jūsu iecienītākajos veikalos.',
+    cta: 'Skatīt visus kodus',
+  },
+  en: {
+    title: 'Home',
+    heading: 'Best Promo Codes in Latvia',
+    description: 'Find the best promo codes and discounts at your favorite stores.',
+    cta: 'View All Codes',
+  },
+  ru: {
+    title: 'Главная',
+    heading: 'Лучшие промокоды в Латвии',
+    description: 'Найдите лучшие промокоды и скидки в ваших любимых магазинах.',
+    cta: 'Посмотреть все коды',
+  },
+};
+
+const page = content[lang];
+
+// Generate hreflang alternates for homepage
+const hreflangAlternates = ['lv', 'en', 'ru'].map((locale) => ({
+  hreflang: locale,
+  href: `https://promocode.lv/${locale}/`,
+}));
+hreflangAlternates.push({
+  hreflang: 'x-default',
+  href: 'https://promocode.lv/lv/',
+});
+
+// Pre-render markdown descriptions
+const promoCodesWithHtml = await Promise.all(
+  promoCodes.map(async (promo) => ({
+    ...promo,
+    htmlDescription: promo.description ? await markdownToHtml(promo.description) : null,
+  }))
+);
+---
+
+<Layout title={page.title} lang={lang} hreflangAlternates={hreflangAlternates}>
+  <div class="text-center py-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-4">{page.heading}</h1>
+    <p class="text-xl text-gray-600 mb-8">{page.description}</p>
+    <a
+      href={`/${lang}/promo-codes`}
+      class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+    >
+      {page.cta}
+    </a>
+  </div>
+
+  <!-- Featured Promo Codes Section -->
+  <section class="mt-16">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      {lang === 'lv' ? 'Izceltie akciju kodi' : lang === 'en' ? 'Featured Promo Codes' : 'Избранные промокоды'}
+    </h2>
+
+    {promoCodes.length === 0 ? (
+      <div class="text-center text-gray-500 py-8">
+        {lang === 'lv'
+          ? 'Drīz būs pieejami izceltie akciju kodi'
+          : lang === 'en'
+            ? 'Featured promo codes coming soon'
+            : 'Избранные промокоды скоро будут доступны'}
+      </div>
+    ) : (
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {promoCodesWithHtml.map((promo) => (
+          <PromoCodeCard promo={promo} lang={lang} htmlDescription={promo.htmlDescription} />
+        ))}
+      </div>
+    )}
+  </section>
+</Layout>

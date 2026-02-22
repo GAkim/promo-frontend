@@ -1,0 +1,121 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import {
+  getFooterLinkBySlug,
+  getFooterLinks,
+  getFooterLinkByDocumentId,
+} from "../../../lib/strapi";
+import { markdownToHtml } from "../../../lib/markdown";
+import { generateFooterLinkHreflang } from "../../../lib/seo";
+import type { FooterLink } from "../../../types/strapi";
+import type { GetStaticPathsResult } from "astro";
+
+export interface Props {
+  lang: string;
+  footerLink: FooterLink | null;
+  htmlContent?: string;
+  localeSlugs: Record<string, string>;
+}
+
+const { lang, footerLink, htmlContent, localeSlugs } = Astro.props;
+
+export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+  const locales = ["lv", "en", "ru"] as const;
+  const paths: GetStaticPathsResult = [];
+
+  for (const locale of locales) {
+    const footerLinks = await getFooterLinks(locale);
+
+    for (const link of footerLinks) {
+      // Skip links without a valid slug
+      if (!link.slug) {
+        continue;
+      }
+
+      // Build slug mapping by fetching the same document in all locales
+      const localeSlugs: Record<string, string> = {
+        [locale]: link.slug,
+      };
+
+      // Fetch slugs from other locales using documentId
+      for (const otherLocale of locales) {
+        if (otherLocale !== locale) {
+          const otherLink = await getFooterLinkByDocumentId(
+            link.documentId,
+            otherLocale,
+          );
+          if (otherLink?.slug) {
+            localeSlugs[otherLocale] = otherLink.slug;
+          }
+        }
+      }
+
+      paths.push({
+        params: { lang: locale, slug: link.slug },
+        props: {
+          lang: locale,
+          footerLink: link,
+          htmlContent: link.content
+            ? await markdownToHtml(link.content)
+            : undefined,
+          localeSlugs,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const notFoundLabels: Record<string, string> = {
+  lv: "Lapa nav atrasta",
+  en: "Page not found",
+  ru: "Страница не найдена",
+};
+
+// Generate hreflang alternates for footer link page
+const hreflangAlternates = generateFooterLinkHreflang(localeSlugs);
+
+// Use SEO fields or fallback to header
+const pageTitle = footerLink?.seoMetaTitle || footerLink?.header || notFoundLabels[lang];
+const pageDescription = footerLink?.seoMetaDescription;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  lang={lang}
+  localeSlugs={localeSlugs}
+  documentId={footerLink?.documentId}
+  contentType="footer-links"
+>
+  {
+    footerLink ? (
+      <article class="max-w-3xl mx-auto py-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-8">
+          {footerLink.header}
+        </h1>
+
+        {htmlContent && (
+          <div
+            class="prose prose-lg max-w-none text-gray-700"
+            set:html={htmlContent}
+          />
+        )}
+      </article>
+    ) : (
+      <div class="text-center py-12">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">
+          {notFoundLabels[lang]}
+        </h1>
+        <a href={`/${lang}/`} class="text-blue-600 hover:underline">
+          {lang === "lv"
+            ? "Atpakaļ uz sākumlapu"
+            : lang === "en"
+              ? "Back to homepage"
+              : "Назад на главную"}
+        </a>
+      </div>
+    )
+  }
+</Layout>

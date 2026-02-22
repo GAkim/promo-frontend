@@ -1,0 +1,23 @@
+{
+  "name": "frontend",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/update-sitemap.js",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.17.1",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.7.0",
+    "@astrojs/tailwind": "^6.0.2",
+    "@tailwindcss/typography": "^0.5.19",
+    "glob": "^13.0.6",
+    "tailwindcss": "^3.4.17"
+  }
+}

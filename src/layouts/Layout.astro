@@ -1,0 +1,114 @@
+---
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import SEO from "../components/SEO.astro";
+import { getFooterLinks } from "../lib/strapi";
+import type { SeoProps, LocaleSlugs, FooterLink } from "../types/strapi";
+import {
+  generateCategoryHreflang,
+  generateBrandHreflang,
+  generateFooterLinkHreflang,
+  generateCanonicalUrl,
+  getHtmlLang,
+} from "../lib/seo";
+
+interface Props {
+  title: string;
+  description?: string | null;
+  lang: string;
+  localeSlugs?: LocaleSlugs;
+  documentId?: string;
+  contentType?: "categories" | "brands" | "footer-links";
+  ogImage?: string;
+  ogType?: string;
+  isListingPage?: boolean;
+  hreflangAlternates?: Array<{ hreflang: string; href: string }>;
+}
+
+const {
+  title,
+  description,
+  lang,
+  localeSlugs,
+  documentId,
+  contentType,
+  ogImage,
+  ogType,
+  isListingPage = false,
+  hreflangAlternates: passedHreflangAlternates,
+} = Astro.props;
+
+// Generate hreflang alternates based on content type
+let hreflangAlternates: Array<{ hreflang: string; href: string }> = [];
+
+// Use passed hreflangAlternates if provided (for listing pages)
+if (passedHreflangAlternates) {
+  hreflangAlternates = passedHreflangAlternates;
+} else if (localeSlugs && contentType) {
+  // Detail page with localized slugs
+  if (contentType === "categories") {
+    hreflangAlternates = generateCategoryHreflang(localeSlugs);
+  } else if (contentType === "brands") {
+    hreflangAlternates = generateBrandHreflang(localeSlugs);
+  } else if (contentType === "footer-links") {
+    hreflangAlternates = generateFooterLinkHreflang(localeSlugs);
+  }
+} else if (isListingPage && contentType) {
+  // Listing page - generate alternates from current path
+  const currentPath = Astro.url.pathname;
+  const pathWithoutLocale = currentPath.replace(/^\/(lv|en|ru)(\/|$)/, "/");
+
+  for (const locale of ["lv", "en", "ru"] as const) {
+    hreflangAlternates.push({
+      hreflang: locale,
+      href: `https://promocode.lv/${locale}${pathWithoutLocale}`,
+    });
+  }
+  // x-default points to default locale (lv)
+  hreflangAlternates.push({
+    hreflang: "x-default",
+    href: `https://promocode.lv/lv${pathWithoutLocale}`,
+  });
+}
+
+// Generate canonical URL for current page
+const canonicalUrl = generateCanonicalUrl(Astro.url.pathname);
+
+// Get HTML lang attribute (e.g., 'lv-LV', 'en-US', 'ru-RU')
+const htmlLang = getHtmlLang(lang as "lv" | "en" | "ru");
+
+// Fetch footer links for this locale
+const footerLinks = await getFooterLinks(lang);
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- SEO Component: hreflang, canonical, meta tags -->
+    <SEO
+      title={title}
+      description={description}
+      canonicalUrl={canonicalUrl}
+      hreflangAlternates={hreflangAlternates}
+      ogImage={ogImage}
+      ogType={ogType}
+      lang={lang}
+    />
+  </head>
+  <body class="flex min-h-screen flex-col bg-gray-50 text-gray-900">
+    <Navbar
+      lang={lang}
+      localeSlugs={localeSlugs}
+      documentId={documentId}
+      contentType={contentType}
+    />
+    <main class="flex-1 container mx-auto px-4 py-8">
+      <slot />
+    </main>
+    <Footer lang={lang} footerLinks={footerLinks} />
+  </body>
+</html>

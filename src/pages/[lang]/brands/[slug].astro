@@ -1,0 +1,135 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import PromoCodeCard from '../../../components/PromoCodeCard.astro';
+import { getBrands, getPromoCodes, getStrapiMediaUrl, getBrandByDocumentId } from '../../../lib/strapi';
+import { markdownToHtml } from '../../../lib/markdown';
+import type { Brand, PromoCode } from '../../../types/strapi';
+import type { GetStaticPathsResult } from 'astro';
+
+export interface Props {
+  lang: string;
+  brand: Brand | null;
+  promoCodes: PromoCode[];
+  localeSlugs: Record<string, string>;
+}
+
+const { lang, brand, promoCodes, localeSlugs } = Astro.props;
+
+export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+  const locales = ['lv', 'en', 'ru'] as const;
+  const paths: GetStaticPathsResult = [];
+
+  for (const locale of locales) {
+    const brands = await getBrands(locale);
+
+    for (const b of brands) {
+      const promoCodes = await getPromoCodes(locale, {
+        active: true,
+        brandSlug: b.slug
+      });
+
+      // Build slug mapping by fetching the same document in all locales
+      const localeSlugs: Record<string, string> = {
+        [locale]: b.slug,
+      };
+
+      // Fetch slugs from other locales using documentId
+      for (const otherLocale of locales) {
+        if (otherLocale !== locale) {
+          const otherBrand = await getBrandByDocumentId(b.documentId, otherLocale);
+          if (otherBrand) {
+            localeSlugs[otherLocale] = otherBrand.slug;
+          }
+        }
+      }
+
+      paths.push({
+        params: { lang: locale, slug: b.slug },
+        props: {
+          lang: locale,
+          brand: b,
+          promoCodes,
+          localeSlugs,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const notFoundLabels: Record<string, string> = {
+  lv: 'Zīmols nav atrasts',
+  en: 'Brand not found',
+  ru: 'Бренд не найден',
+};
+
+const noCodesLabels: Record<string, string> = {
+  lv: 'Šim zīmolam nav akciju kodu',
+  en: 'No promo codes for this brand',
+  ru: 'У этого бренда нет промокодов',
+};
+
+// Pre-render markdown descriptions
+const promoCodesWithHtml = await Promise.all(
+  promoCodes.map(async (promo) => ({
+    ...promo,
+    htmlDescription: promo.description ? await markdownToHtml(promo.description) : null,
+  }))
+);
+---
+
+<Layout
+  title={brand?.name || notFoundLabels[lang]}
+  description={brand?.seoMetaDescription || brand?.description || undefined}
+  lang={lang}
+  localeSlugs={localeSlugs}
+  documentId={brand?.documentId}
+  contentType="brands"
+>
+  {brand ? (
+    <div class="py-8">
+      <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+        <div class="flex flex-col items-center text-center">
+          {brand.logo ? (
+            <img src={getStrapiMediaUrl(brand.logo)} alt={brand.name} class="w-32 h-32 object-contain mb-4" />
+          ) : (
+            <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <span class="text-gray-400 text-4xl">{brand.name?.[0]}</span>
+            </div>
+          )}
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">{brand.name}</h1>
+          {brand.description && <p class="text-gray-600 max-w-2xl">{brand.description}</p>}
+          {brand.websiteUrl && (
+            <a href={brand.websiteUrl} target="_blank" rel="noopener noreferrer" class="mt-4 text-blue-600 hover:underline">
+              {brand.websiteUrl}
+            </a>
+          )}
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        {lang === 'lv' ? 'Akciju kodi' : lang === 'en' ? 'Promo Codes' : 'Промокоды'}
+      </h2>
+
+      {promoCodes.length === 0 ? (
+        <div class="text-center text-gray-500 py-12">
+          <p class="text-lg">{noCodesLabels[lang]}</p>
+        </div>
+      ) : (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {promoCodesWithHtml.map((promo) => (
+            <PromoCodeCard promo={promo} lang={lang} htmlDescription={promo.htmlDescription} />
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="text-center py-12">
+      <h1 class="text-2xl font-bold text-gray-900 mb-4">{notFoundLabels[lang]}</h1>
+      <a href={`/${lang}/brands`} class="text-blue-600 hover:underline">
+        {lang === 'lv' ? 'Atpakaļ uz zīmoliem' : lang === 'en' ? 'Back to brands' : 'Назад к брендам'}
+      </a>
+    </div>
+  )}
+</Layout>

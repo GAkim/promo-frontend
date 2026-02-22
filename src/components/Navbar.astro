@@ -1,0 +1,209 @@
+---
+import { getHreflang, getHtmlLang, getLocalizedPath as getLocalizedPathUtil } from '../lib/seo';
+import type { LocaleSlugs } from '../types/strapi';
+
+interface Props {
+  lang: string;
+  localeSlugs?: LocaleSlugs;
+  documentId?: string;
+  contentType?: 'categories' | 'brands' | 'footer-links';
+}
+
+const { lang, localeSlugs, documentId, contentType } = Astro.props;
+
+const navLinks = [
+  { href: '/', label: { lv: 'Sākums', en: 'Home', ru: 'Главная' } },
+  { href: '/promo-codes', label: { lv: 'Akcijas kodi', en: 'Promo Codes', ru: 'Промокоды' } },
+  { href: '/categories', label: { lv: 'Kategorijas', en: 'Categories', ru: 'Категории' } },
+  { href: '/brands', label: { lv: 'Zīmoli', en: 'Brands', ru: 'Бренды' } },
+];
+
+const langLinks = [
+  { code: 'lv', label: 'LV' },
+  { code: 'en', label: 'EN' },
+  { code: 'ru', label: 'RU' },
+];
+
+// Get current path without locale prefix
+const currentPath = Astro.url.pathname;
+const pathWithoutLocale = currentPath.replace(/^\/(lv|en|ru)(\/|$)/, '/');
+
+// For detail pages, use localized slugs if available
+function getLocalizedPath(targetLang: string): string {
+  // For detail pages with localized slugs
+  if (localeSlugs && contentType) {
+    const localizedSlug = localeSlugs[targetLang];
+
+    // Only use localized slug if it exists for the target language
+    if (localizedSlug) {
+      if (contentType === 'categories') {
+        return `/${targetLang}/categories/${localizedSlug}`;
+      }
+      if (contentType === 'brands') {
+        return `/${targetLang}/brands/${localizedSlug}`;
+      }
+      if (contentType === 'footer-links') {
+        return `/${targetLang}/info/${localizedSlug}`;
+      }
+    }
+  }
+
+  // Fallback: replace locale but keep the rest of the path
+  // This handles listing pages and cases where localized slug is missing
+  return `/${targetLang}${pathWithoutLocale}`;
+}
+---
+
+<header class="bg-white shadow-sm border-b">
+  <nav class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <a href={`/${lang}/`} class="text-xl font-bold text-blue-600 hover:text-blue-700">
+        PromoCode.lv
+      </a>
+
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center space-x-6">
+        {navLinks.map((link) => (
+          <a
+            href={`/${lang}${link.href === '/' ? '' : link.href}`}
+            class="text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            {link.label[lang as 'lv' | 'en' | 'ru']}
+          </a>
+        ))}
+      </div>
+
+      <!-- Language Switcher (Desktop) -->
+      <div class="hidden md:flex items-center space-x-2">
+        {langLinks.map((langLink) => {
+          const newPath = getLocalizedPath(langLink.code);
+          const hreflang = getHreflang(langLink.code as 'lv' | 'en' | 'ru');
+          const htmlLang = getHtmlLang(langLink.code as 'lv' | 'en' | 'ru');
+          const isActive = langLink.code === lang;
+
+          return (
+            <a
+              href={newPath}
+              hreflang={hreflang}
+              lang={htmlLang}
+              class:list={[
+                'px-2 py-1 text-sm rounded transition-colors',
+                isActive
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100',
+              ]}
+              aria-current={isActive ? 'true' : undefined}
+              title={`Switch to ${langLink.label}`}
+            >
+              {langLink.label}
+            </a>
+          );
+        })}
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        type="button"
+        id="mobile-menu-button"
+        class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+      >
+        <svg
+          id="menu-icon"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+        <svg
+          id="close-icon"
+          class="h-6 w-6 hidden"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+      <div class="flex flex-col space-y-4">
+        <!-- Navigation Links -->
+        <div class="flex flex-col space-y-2">
+          {navLinks.map((link) => (
+            <a
+              href={`/${lang}${link.href === '/' ? '' : link.href}`}
+              class="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md transition-colors"
+            >
+              {link.label[lang as 'lv' | 'en' | 'ru']}
+            </a>
+          ))}
+        </div>
+
+        <!-- Language Switcher (Mobile) -->
+        <div class="flex items-center space-x-2 pt-4 border-t border-gray-200">
+          <span class="text-sm text-gray-500">Language:</span>
+          {langLinks.map((langLink) => {
+            const newPath = getLocalizedPath(langLink.code);
+            const hreflang = getHreflang(langLink.code as 'lv' | 'en' | 'ru');
+            const htmlLang = getHtmlLang(langLink.code as 'lv' | 'en' | 'ru');
+            const isActive = langLink.code === lang;
+
+            return (
+              <a
+                href={newPath}
+                hreflang={hreflang}
+                lang={htmlLang}
+                class:list={[
+                  'px-3 py-1.5 text-sm rounded transition-colors font-medium',
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100',
+                ]}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                {langLink.label}
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <script>
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    const closeIcon = document.getElementById('close-icon');
+
+    mobileMenuButton?.addEventListener('click', () => {
+      const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+      
+      // Toggle menu visibility
+      mobileMenu?.classList.toggle('hidden');
+      
+      // Update aria-expanded
+      mobileMenuButton.setAttribute('aria-expanded', (!isExpanded).toString());
+      
+      // Toggle icons
+      menuIcon?.classList.toggle('hidden');
+      closeIcon?.classList.toggle('hidden');
+    });
+  </script>
+</header>

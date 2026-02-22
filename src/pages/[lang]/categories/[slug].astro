@@ -1,0 +1,132 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import PromoCodeCard from '../../../components/PromoCodeCard.astro';
+import { getCategoryBySlug, getPromoCodes, getStrapiMediaUrl, getCategories, getCategoryByDocumentId } from '../../../lib/strapi';
+import { markdownToHtml } from '../../../lib/markdown';
+import type { Category, PromoCode } from '../../../types/strapi';
+import type { GetStaticPathsResult } from 'astro';
+
+export interface Props {
+  lang: string;
+  category: Category | null;
+  promoCodes: PromoCode[];
+  localeSlugs: Record<string, string>;
+}
+
+const { lang, category, promoCodes, localeSlugs } = Astro.props;
+
+export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+  const locales = ['lv', 'en', 'ru'] as const;
+  const paths: GetStaticPathsResult = [];
+
+  for (const locale of locales) {
+    const categories = await getCategories(locale);
+
+    for (const cat of categories) {
+      const promoCodes = await getPromoCodes(locale, {
+        active: true,
+        categorySlug: cat.slug
+      });
+
+      // Build slug mapping by fetching the same document in all locales
+      const localeSlugs: Record<string, string> = {
+        [locale]: cat.slug,
+      };
+
+      // Fetch slugs from other locales using documentId
+      for (const otherLocale of locales) {
+        if (otherLocale !== locale) {
+          const otherCat = await getCategoryByDocumentId(cat.documentId, otherLocale);
+          if (otherCat) {
+            localeSlugs[otherLocale] = otherCat.slug;
+          }
+        }
+      }
+
+      paths.push({
+        params: { lang: locale, slug: cat.slug },
+        props: {
+          lang: locale,
+          category: cat,
+          promoCodes,
+          localeSlugs,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const notFoundLabels: Record<string, string> = {
+  lv: 'Kategorija nav atrasta',
+  en: 'Category not found',
+  ru: 'Категория не найдена',
+};
+
+const noCodesLabels: Record<string, string> = {
+  lv: 'Šajā kategorijā nav akciju kodu',
+  en: 'No promo codes in this category',
+  ru: 'В этой категории нет промокодов',
+};
+
+// Pre-render markdown descriptions
+const promoCodesWithHtml = await Promise.all(
+  promoCodes.map(async (promo) => ({
+    ...promo,
+    htmlDescription: promo.description ? await markdownToHtml(promo.description) : null,
+  }))
+);
+---
+
+<Layout
+  title={category?.name || notFoundLabels[lang]}
+  description={category?.seoMetaDescription || category?.description || undefined}
+  lang={lang}
+  localeSlugs={localeSlugs}
+  documentId={category?.documentId}
+  contentType="categories"
+>
+  {category ? (
+    <div class="py-8">
+      <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+        <div class="flex items-center gap-4 mb-4">
+          {category.logo ? (
+            <img src={getStrapiMediaUrl(category.logo)} alt={category.name} class="w-20 h-20 object-contain" />
+          ) : (
+            <div class="w-20 h-20 bg-gray-100 rounded flex items-center justify-center">
+              <span class="text-gray-400 text-2xl">{category.name?.[0]}</span>
+            </div>
+          )}
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">{category.name}</h1>
+            {category.description && <p class="text-gray-600 mt-1">{category.description}</p>}
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        {lang === 'lv' ? 'Akciju kodi' : lang === 'en' ? 'Promo Codes' : 'Промокоды'}
+      </h2>
+
+      {promoCodes.length === 0 ? (
+        <div class="text-center text-gray-500 py-12">
+          <p class="text-lg">{noCodesLabels[lang]}</p>
+        </div>
+      ) : (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {promoCodesWithHtml.map((promo) => (
+            <PromoCodeCard promo={promo} lang={lang} htmlDescription={promo.htmlDescription} />
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="text-center py-12">
+      <h1 class="text-2xl font-bold text-gray-900 mb-4">{notFoundLabels[lang]}</h1>
+      <a href={`/${lang}/categories`} class="text-blue-600 hover:underline">
+        {lang === 'lv' ? 'Atpakaļ uz kategorijām' : lang === 'en' ? 'Back to categories' : 'Назад к категориям'}
+      </a>
+    </div>
+  )}
+</Layout>

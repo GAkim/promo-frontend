@@ -1,0 +1,177 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPromoCodes } from '../../lib/strapi';
+import { getStrapiMediaUrl } from '../../lib/strapi';
+import { markdownToHtml } from '../../lib/markdown';
+import type { PromoCode } from '../../types/strapi';
+import type { GetStaticPathsResult } from 'astro';
+
+export interface Props {
+  lang: string;
+  promoCodes: PromoCode[];
+}
+
+const { lang, promoCodes } = Astro.props;
+
+// Pre-render markdown descriptions
+const promoCodesWithHtml = await Promise.all(
+  promoCodes.map(async (promo) => ({
+    ...promo,
+    htmlDescription: promo.description ? await markdownToHtml(promo.description) : null,
+  }))
+);
+
+export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+  const locales = ['lv', 'en', 'ru'] as const;
+  const paths: GetStaticPathsResult = [];
+
+  for (const locale of locales) {
+    const promoCodes = await getPromoCodes(locale, { active: true });
+    paths.push({
+      params: { lang: locale },
+      props: { lang: locale, promoCodes },
+    });
+  }
+
+  return paths;
+}
+
+const titles: Record<string, string> = {
+  lv: 'Akcijas kodi',
+  en: 'Promo Codes',
+  ru: 'Промокоды',
+};
+
+const copyLabels: Record<string, string> = {
+  lv: 'Kopēt',
+  en: 'Copy',
+  ru: 'Копировать',
+};
+
+const visitLabels: Record<string, string> = {
+  lv: 'Apmeklēt',
+  en: 'Visit',
+  ru: 'Посетить',
+};
+
+const expiryLabels: Record<string, string> = {
+  lv: 'Spēkā līdz:',
+  en: 'Valid until:',
+  ru: 'Действует до:',
+};
+
+// Generate hreflang alternates for listing page
+const hreflangAlternates = ['lv', 'en', 'ru'].map((locale) => ({
+  hreflang: locale,
+  href: `https://promocode.lv/${locale}/promo-codes/`,
+}));
+hreflangAlternates.push({
+  hreflang: 'x-default',
+  href: 'https://promocode.lv/lv/promo-codes/',
+});
+
+const noCodesLabels: Record<string, string> = {
+  lv: 'Pašlaik nav akciju kodu',
+  en: 'No promo codes available',
+  ru: 'Промокодов пока нет',
+};
+
+function formatExpiryDate(dateString: string | null, locale: string): string {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString(locale === 'lv' ? 'lv-LV' : locale === 'ru' ? 'ru-RU' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+---
+
+<Layout title={titles[lang]} lang={lang} hreflangAlternates={hreflangAlternates}>
+  <div class="py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">{titles[lang]}</h1>
+
+    {promoCodes.length === 0 ? (
+      <div class="text-center text-gray-500 py-12">
+        <p class="text-lg">{noCodesLabels[lang]}</p>
+      </div>
+    ) : (
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {promoCodesWithHtml.map((promo) => (
+          <div class="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <!-- Header with logo -->
+              <div class="flex items-center gap-4 mb-4">
+                {promo.logo ? (
+                  <img
+                    src={getStrapiMediaUrl(promo.logo)}
+                    alt={promo.brand?.name || "Brand logo"}
+                    class="w-12 h-12 object-contain"
+                  />
+                ) : (
+                  <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
+                    <span class="text-gray-400 text-sm font-semibold">
+                      {promo.brand?.name?.[0]?.toUpperCase() || "?"}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <h3 class="font-semibold text-gray-900">{promo.title}</h3>
+                  <p class="text-sm text-gray-500">{promo.brand?.name}</p>
+                </div>
+              </div>
+
+              <!-- Code -->
+              <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                <code class="text-lg font-mono font-bold text-blue-600">{promo.code}</code>
+              </div>
+
+              <!-- Description -->
+              {promo.htmlDescription && (
+                <div
+                  class="text-gray-600 text-sm mb-4 prose prose-sm max-w-none"
+                  set:html={promo.htmlDescription}
+                />
+              )}
+
+              <!-- Category -->
+              {promo.category && (
+                <p class="text-xs text-gray-500 mb-2">
+                  {promo.category.name}
+                </p>
+              )}
+
+              <!-- Expiry Date -->
+              {promo.expiryDate && (
+                <p class="text-xs text-gray-500 mb-4">
+                  {expiryLabels[lang]} {formatExpiryDate(promo.expiryDate, lang)}
+                </p>
+              )}
+
+              <!-- Actions -->
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  onclick={`navigator.clipboard.writeText('${promo.code}'); alert('${copyLabels[lang]}: ${promo.code}');`}
+                  class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm font-medium"
+                >
+                  {copyLabels[lang]}
+                </button>
+                {promo.affiliateLink && (
+                  <a
+                    href={promo.affiliateLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex-1 px-4 py-2 bg-blue-600 text-white text-center rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    {visitLabels[lang]}
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</Layout>

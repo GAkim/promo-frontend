@@ -1,0 +1,107 @@
+---
+/**
+ * SEO Component
+ *
+ * Renders multilingual SEO tags in <head>:
+ * - hreflang alternate links for all language versions
+ * - canonical URL pointing to current language version
+ * - Meta tags for social sharing
+ *
+ * Usage:
+ * <SEO
+ *   title="Page Title"
+ *   description="Page description"
+ *   canonicalUrl={Astro.url.pathname}
+ *   hreflangAlternates={[{ hreflang: 'en', href: 'https://...' }]}
+ *   lang="lv"
+ * />
+ */
+
+import type { SeoProps } from "../types/strapi";
+import {
+  SITE_CONFIG,
+  getHtmlLang,
+  getOgLocale,
+  stripMarkdown,
+} from "../lib/seo";
+
+export interface Props extends SeoProps {
+  lang?: string;
+}
+
+const {
+  title,
+  description,
+  canonicalUrl,
+  hreflangAlternates = [],
+  ogImage,
+  ogType = "website",
+  lang = SITE_CONFIG.defaultLocale,
+} = Astro.props;
+
+const titleSpec = `${title} | PromoCode.lv`;
+const siteUrl = SITE_CONFIG.url;
+const canonical = canonicalUrl ? new URL(canonicalUrl, siteUrl).href : siteUrl;
+const ogImageUrl = ogImage || `${siteUrl}/og-image.png`;
+const htmlLang = getHtmlLang(lang as "lv" | "en" | "ru");
+const ogLocale = getOgLocale(lang as "lv" | "en" | "ru");
+// Strip Markdown from description for clean meta tags
+const cleanDescription = description ? stripMarkdown(description) : "";
+---
+
+<!-- Primary meta tags -->
+<title>{titleSpec}</title>
+{cleanDescription && <meta name="description" content={cleanDescription} />}
+
+<!-- Canonical URL - always points to current language version -->
+<link rel="canonical" href={canonical} />
+
+<!-- Hreflang alternate links for all language versions -->
+{
+  hreflangAlternates.map((alternate) => (
+    <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+  ))
+}
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonical} />
+<meta property="og:title" content={title} />
+{
+  cleanDescription && (
+    <meta property="og:description" content={cleanDescription} />
+  )
+}
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:locale" content={ogLocale} />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={canonical} />
+<meta property="twitter:title" content={title} />
+{
+  cleanDescription && (
+    <meta property="twitter:description" content={cleanDescription} />
+  )
+}
+<meta property="twitter:image" content={ogImageUrl} />
+
+<!-- Alternative languages for social sharing -->
+{
+  hreflangAlternates
+    .filter((alt) => alt.hreflang !== "x-default")
+    .map((alternate) => {
+      // Convert hreflang (e.g., 'lv') to og:locale format (e.g., 'lv_LV')
+      const ogLocaleAlternate =
+        alternate.hreflang === "lv"
+          ? "lv_LV"
+          : alternate.hreflang === "en"
+            ? "en_US"
+            : alternate.hreflang === "ru"
+              ? "ru_RU"
+              : alternate.hreflang;
+      return (
+        <meta property="og:locale:alternate" content={ogLocaleAlternate} />
+      );
+    })
+}
