@@ -1,5 +1,6 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
+import ContactForm from "../../../components/ContactForm.astro";
 import {
   getFooterLinkBySlug,
   getFooterLinks,
@@ -15,9 +16,11 @@ export interface Props {
   footerLink: FooterLink | null;
   htmlContent?: string;
   localeSlugs: Record<string, string>;
+  isContactPage?: boolean;
 }
 
-const { lang, footerLink, htmlContent, localeSlugs } = Astro.props;
+const { lang, footerLink, htmlContent, localeSlugs, isContactPage } =
+  Astro.props;
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
   const locales = ["lv", "en", "ru"] as const;
@@ -50,6 +53,8 @@ export async function getStaticPaths(): Promise<GetStaticPathsResult> {
         }
       }
 
+      const contactSlugs = ["contact", "kontakty", "kontakti"];
+
       paths.push({
         params: { lang: locale, slug: link.slug },
         props: {
@@ -59,6 +64,7 @@ export async function getStaticPaths(): Promise<GetStaticPathsResult> {
             ? await markdownToHtml(link.content)
             : undefined,
           localeSlugs,
+          isContactPage: contactSlugs.includes(link.slug),
         },
       });
     }
@@ -77,7 +83,8 @@ const notFoundLabels: Record<string, string> = {
 const hreflangAlternates = generateFooterLinkHreflang(localeSlugs);
 
 // Use SEO fields or fallback to header
-const pageTitle = footerLink?.seoMetaTitle || footerLink?.header || notFoundLabels[lang];
+const pageTitle =
+  footerLink?.seoMetaTitle || footerLink?.header || notFoundLabels[lang];
 const pageDescription = footerLink?.seoMetaDescription;
 ---
 
@@ -102,6 +109,15 @@ const pageDescription = footerLink?.seoMetaDescription;
             set:html={htmlContent}
           />
         )}
+
+        {isContactPage && (
+          <div class="mt-12 pt-8 border-t border-gray-200">
+            <ContactForm
+              lang={lang}
+              siteKey={import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY}
+            />
+          </div>
+        )}
       </article>
     ) : (
       <div class="text-center py-12">
@@ -119,3 +135,10 @@ const pageDescription = footerLink?.seoMetaDescription;
     )
   }
 </Layout>
+
+<!-- reCAPTCHA script (only loaded on contact page) -->
+{
+  isContactPage && (
+    <script src="https://www.google.com/recaptcha/api.js" async defer />
+  )
+}

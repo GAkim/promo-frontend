@@ -1,10 +1,10 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PromoCodeCard from '../../components/PromoCodeCard.astro';
-import { getPromoCodes } from '../../lib/strapi';
-import { markdownToHtml } from '../../lib/markdown';
-import type { PromoCode } from '../../types/strapi';
-import type { GetStaticPathsResult } from 'astro';
+import Layout from "../../layouts/Layout.astro";
+import PromoCodeCard from "../../components/PromoCodeCard.astro";
+import { getPromoCodes } from "../../lib/strapi";
+import { markdownToHtml } from "../../lib/markdown";
+import type { PromoCode } from "../../types/strapi";
+import type { GetStaticPathsResult } from "astro";
 
 export interface Props {
   lang: string;
@@ -14,12 +14,16 @@ export interface Props {
 const { lang, promoCodes } = Astro.props;
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
-  const locales = ['lv', 'en', 'ru'] as const;
+  const locales = ["lv", "en", "ru"] as const;
   const paths: GetStaticPathsResult = [];
 
   for (const locale of locales) {
     // Fetch featured promo codes for this locale
-    const promoCodes = await getPromoCodes(locale, { featured: true, active: true, limit: 6 });
+    const promoCodes = await getPromoCodes(locale, {
+      featured: true,
+      active: true,
+      limit: 6,
+    });
 
     paths.push({
       params: { lang: locale },
@@ -30,57 +34,65 @@ export async function getStaticPaths(): Promise<GetStaticPathsResult> {
   return paths;
 }
 
-const content: Record<string, { title: string; heading: string; description: string; cta: string }> = {
+const content: Record<
+  string,
+  { title: string; heading: string; description: string; cta: string }
+> = {
   lv: {
-    title: 'Sākums',
-    heading: 'Akciju kodi un atlaides',
-    description: 'Atrodiet labākos akciju kodus un atlaides jūsu iecienītākajos veikalos.',
-    cta: 'Skatīt visus kodus',
+    title: "Sākums",
+    heading: "Akciju kodi un atlaides",
+    description:
+      "Atrodiet labākos akciju kodus un atlaides jūsu iecienītākajos veikalos un servisos.",
+    cta: "Skatīt visus kodus",
   },
   en: {
-    title: 'Home',
-    heading: 'Promo Codes & Discounts',
-    description: 'Find the best promo codes and discounts at your favorite stores.',
-    cta: 'View All Codes',
+    title: "Home",
+    heading: "Promo Codes & Discounts",
+    description:
+      "Find the best promo codes and discounts at your favorite stores and services.",
+    cta: "View All Codes",
   },
   ru: {
-    title: 'Главная',
-    heading: 'Промокоды и скидки',
-    description: 'Найдите лучшие промокоды и скидки в ваших любимых магазинах.',
-    cta: 'Посмотреть все коды',
+    title: "Главная",
+    heading: "Промокоды и скидки",
+    description:
+      "Найдите лучшие промокоды и скидки в ваших любимых магазинах и сервисах.",
+    cta: "Посмотреть все коды",
   },
 };
 
 const page = content[lang];
 
 const sectionLabels: Record<string, string> = {
-  lv: 'Izceltie akciju kodi',
-  en: 'Featured Promo Codes',
-  ru: 'Избранные промокоды',
+  lv: "Izceltie akciju kodi",
+  en: "Featured Promo Codes",
+  ru: "Избранные промокоды",
 };
 
 const emptyStateLabels: Record<string, string> = {
-  lv: 'Drīz būs pieejami izceltie akciju kodi',
-  en: 'Featured promo codes coming soon',
-  ru: 'Избранные промокоды скоро будут доступны',
+  lv: "Drīz būs pieejami izceltie akciju kodi",
+  en: "Featured promo codes coming soon",
+  ru: "Избранные промокоды скоро будут доступны",
 };
 
 // Generate hreflang alternates for homepage
-const hreflangAlternates = ['lv', 'en', 'ru'].map((locale) => ({
+const hreflangAlternates = ["lv", "en", "ru"].map((locale) => ({
   hreflang: locale,
   href: `https://promocode.lv/${locale}/`,
 }));
 hreflangAlternates.push({
-  hreflang: 'x-default',
-  href: 'https://promocode.lv/lv/',
+  hreflang: "x-default",
+  href: "https://promocode.lv/lv/",
 });
 
 // Pre-render markdown descriptions
 const promoCodesWithHtml = await Promise.all(
   promoCodes.map(async (promo) => ({
     ...promo,
-    htmlDescription: promo.description ? await markdownToHtml(promo.description) : null,
-  }))
+    htmlDescription: promo.description
+      ? await markdownToHtml(promo.description)
+      : null,
+  })),
 );
 ---
 
@@ -102,16 +114,22 @@ const promoCodesWithHtml = await Promise.all(
       {sectionLabels[lang]}
     </h2>
 
-    {promoCodes.length === 0 ? (
-      <div class="text-center text-gray-500 py-8">
-        <p>{emptyStateLabels[lang]}</p>
-      </div>
-    ) : (
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {promoCodesWithHtml.map((promo) => (
-          <PromoCodeCard promo={promo} lang={lang} htmlDescription={promo.htmlDescription} />
-        ))}
-      </div>
-    )}
+    {
+      promoCodes.length === 0 ? (
+        <div class="text-center text-gray-500 py-8">
+          <p>{emptyStateLabels[lang]}</p>
+        </div>
+      ) : (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {promoCodesWithHtml.map((promo) => (
+            <PromoCodeCard
+              promo={promo}
+              lang={lang}
+              htmlDescription={promo.htmlDescription}
+            />
+          ))}
+        </div>
+      )
+    }
   </section>
 </Layout>
