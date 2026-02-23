@@ -24,6 +24,12 @@ const langLinks = [
   { code: 'ru', label: 'RU' },
 ];
 
+const languageLabels = {
+  lv: 'Valoda:',
+  en: 'Language:',
+  ru: 'Язык:',
+};
+
 // Get current path without locale prefix
 const currentPath = Astro.url.pathname;
 const pathWithoutLocale = currentPath.replace(/^\/(lv|en|ru)(\/|$)/, '/');
@@ -157,7 +163,7 @@ function getLocalizedPath(targetLang: string): string {
 
         <!-- Language Switcher (Mobile) -->
         <div class="flex items-center space-x-2 pt-4 border-t border-gray-200">
-          <span class="text-sm text-gray-500">Language:</span>
+          <span class="text-sm text-gray-500">{languageLabels[lang as 'lv' | 'en' | 'ru']}</span>
           {langLinks.map((langLink) => {
             const newPath = getLocalizedPath(langLink.code);
             const hreflang = getHreflang(langLink.code as 'lv' | 'en' | 'ru');

@@ -33,25 +33,37 @@ export async function getStaticPaths(): Promise<GetStaticPathsResult> {
 const content: Record<string, { title: string; heading: string; description: string; cta: string }> = {
   lv: {
     title: 'Sākums',
-    heading: 'Labākie akciju kodi Latvijā',
+    heading: 'Akciju kodi un atlaides',
     description: 'Atrodiet labākos akciju kodus un atlaides jūsu iecienītākajos veikalos.',
     cta: 'Skatīt visus kodus',
   },
   en: {
     title: 'Home',
-    heading: 'Best Promo Codes in Latvia',
+    heading: 'Promo Codes & Discounts',
     description: 'Find the best promo codes and discounts at your favorite stores.',
     cta: 'View All Codes',
   },
   ru: {
     title: 'Главная',
-    heading: 'Лучшие промокоды в Латвии',
+    heading: 'Промокоды и скидки',
     description: 'Найдите лучшие промокоды и скидки в ваших любимых магазинах.',
     cta: 'Посмотреть все коды',
   },
 };
 
 const page = content[lang];
+
+const sectionLabels: Record<string, string> = {
+  lv: 'Izceltie akciju kodi',
+  en: 'Featured Promo Codes',
+  ru: 'Избранные промокоды',
+};
+
+const emptyStateLabels: Record<string, string> = {
+  lv: 'Drīz būs pieejami izceltie akciju kodi',
+  en: 'Featured promo codes coming soon',
+  ru: 'Избранные промокоды скоро будут доступны',
+};
 
 // Generate hreflang alternates for homepage
 const hreflangAlternates = ['lv', 'en', 'ru'].map((locale) => ({
@@ -87,16 +99,12 @@ const promoCodesWithHtml = await Promise.all(
   <!-- Featured Promo Codes Section -->
   <section class="mt-16">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">
-      {lang === 'lv' ? 'Izceltie akciju kodi' : lang === 'en' ? 'Featured Promo Codes' : 'Избранные промокоды'}
+      {sectionLabels[lang]}
     </h2>
 
     {promoCodes.length === 0 ? (
       <div class="text-center text-gray-500 py-8">
-        {lang === 'lv'
-          ? 'Drīz būs pieejami izceltie akciju kodi'
-          : lang === 'en'
-            ? 'Featured promo codes coming soon'
-            : 'Избранные промокоды скоро будут доступны'}
+        <p>{emptyStateLabels[lang]}</p>
       </div>
     ) : (
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

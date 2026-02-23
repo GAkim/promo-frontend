@@ -79,6 +79,24 @@ const htmlLang = getHtmlLang(lang as "lv" | "en" | "ru");
 
 // Fetch footer links for this locale
 const footerLinks = await getFooterLinks(lang);
+
+// GDPR notice translations
+const gdprContent = {
+  lv: {
+    text: 'Šī vietne izmanto sīkdatnes, lai uzlabotu jūsu pārlūkošanas pieredzi un analizētu apmeklējumu datus, izmantojot Google Analytics. Analītikas sīkdatnes palīdz mums saprast, kā apmeklētāji izmanto vietni. Noklikšķinot "Piekrītu", jūs piekrītat analītikas sīkdatņu izmantošanai. Jūs varat atsaukt savu piekrišanu jebkurā laikā, mainot pārlūka iestatījumus.',
+    button: "Piekrītu",
+  },
+  en: {
+    text: 'This website uses cookies to improve your browsing experience and to analyze traffic using Google Analytics. Analytics cookies help us understand how visitors use the site. By clicking "Accept", you consent to the use of analytics cookies. You can withdraw your consent at any time via your browser settings.',
+    button: "Accept",
+  },
+  ru: {
+    text: 'Этот сайт использует файлы cookie для улучшения вашего опыта просмотра и анализа трафика с помощью Google Analytics. Файлы cookie аналитики помогают нам понять, как посетители используют сайт. Нажимая "Принять", вы соглашаетесь на использование файлов cookie аналитики. Вы можете отозвать свое согласие в любое время через настройки браузера.',
+    button: "Принять",
+  },
+};
+
+const gdpr = gdprContent[lang as "lv" | "en" | "ru"];
 ---
 
 <!doctype html>
@@ -106,9 +124,33 @@ const footerLinks = await getFooterLinks(lang);
       documentId={documentId}
       contentType={contentType}
     />
-    <main class="flex-1 container mx-auto px-4 py-8">
+    <main class="flex-1 container mx-auto px-4">
       <slot />
     </main>
+    <!-- GDPR Notice -->
+    <div
+      id="gdpr-notice"
+      class="fixed bottom-0 left-0 right-0 bg-gray-900/90 text-white px-4 py-3 z-50"
+    >
+      <div class="container mx-auto max-w-4xl flex flex-col gap-3">
+        <p class="text-sm">{gdpr.text}</p>
+        <div class="flex justify-end">
+          <button
+            onclick="document.getElementById('gdpr-notice').style.display='none'; localStorage.setItem('gdprAccepted', 'true')"
+            class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded text-sm font-semibold whitespace-nowrap"
+          >
+            {gdpr.button}
+          </button>
+        </div>
+      </div>
+    </div>
     <Footer lang={lang} footerLinks={footerLinks} />
+    <script>
+      // Hide GDPR notice if already accepted
+      if (localStorage.getItem("gdprAccepted") === "true") {
+        const notice = document.getElementById("gdpr-notice");
+        if (notice) notice.style.display = "none";
+      }
+    </script>
   </body>
 </html>

@@ -70,6 +70,18 @@ const noCodesLabels: Record<string, string> = {
   ru: 'У этого бренда нет промокодов',
 };
 
+const sectionLabels: Record<string, string> = {
+  lv: 'Akciju kodi',
+  en: 'Promo Codes',
+  ru: 'Промокоды',
+};
+
+const backLabels: Record<string, string> = {
+  lv: 'Atpakaļ uz zīmoliem',
+  en: 'Back to brands',
+  ru: 'Назад к брендам',
+};
+
 // Pre-render markdown descriptions
 const promoCodesWithHtml = await Promise.all(
   promoCodes.map(async (promo) => ({
@@ -109,7 +121,7 @@ const promoCodesWithHtml = await Promise.all(
       </div>
 
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        {lang === 'lv' ? 'Akciju kodi' : lang === 'en' ? 'Promo Codes' : 'Промокоды'}
+        {sectionLabels[lang]}
       </h2>
 
       {promoCodes.length === 0 ? (
@@ -128,7 +140,7 @@ const promoCodesWithHtml = await Promise.all(
     <div class="text-center py-12">
       <h1 class="text-2xl font-bold text-gray-900 mb-4">{notFoundLabels[lang]}</h1>
       <a href={`/${lang}/brands`} class="text-blue-600 hover:underline">
-        {lang === 'lv' ? 'Atpakaļ uz zīmoliem' : lang === 'en' ? 'Back to brands' : 'Назад к брендам'}
+        {backLabels[lang]}
       </a>
     </div>
   )}
