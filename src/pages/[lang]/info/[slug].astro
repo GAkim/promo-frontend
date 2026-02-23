@@ -11,6 +11,8 @@ import { generateFooterLinkHreflang } from "../../../lib/seo";
 import type { FooterLink } from "../../../types/strapi";
 import type { GetStaticPathsResult } from "astro";
 
+export const prerender = true;
+
 export interface Props {
   lang: string;
   footerLink: FooterLink | null;

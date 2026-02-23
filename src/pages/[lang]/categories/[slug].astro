@@ -6,6 +6,8 @@ import { markdownToHtml } from '../../../lib/markdown';
 import type { Category, PromoCode } from '../../../types/strapi';
 import type { GetStaticPathsResult } from 'astro';
 
+export const prerender = true;
+
 export interface Props {
   lang: string;
   category: Category | null;

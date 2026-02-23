@@ -7,7 +7,7 @@ const localeCodes = { en: 'en-US', lv: 'lv-LV', ru: 'ru-RU' };
 const DEFAULT_LOCALE = 'en'; // x-default points to English
 
 // Read all generated HTML files to extract hreflang data
-const htmlFiles = globSync('dist/**/*.html');
+const htmlFiles = globSync('dist/client/**/*.html');
 const pageData = new Map();
 
 // Extract hreflang alternates from HTML files
@@ -33,7 +33,7 @@ for (const file of htmlFiles) {
     let alternatePath = href.replace('https://promocode.lv', '');
     // Normalize: ensure trailing slash
     if (!alternatePath.endsWith('/')) alternatePath += '/';
-    
+
     if (hreflang === 'x-default') {
       xDefaultHref = alternatePath;
     } else {
@@ -47,8 +47,8 @@ for (const file of htmlFiles) {
   }
 }
 
-// Process sitemap-0.xml
-const sitemapPath = 'dist/sitemap-0.xml';
+// Process sitemap-0.xml (now in dist/client/ due to server output mode)
+const sitemapPath = 'dist/client/sitemap-0.xml';
 let content = readFileSync(sitemapPath, 'utf-8');
 
 // Add lastmod after each <loc> tag (before changefreq)

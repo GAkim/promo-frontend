@@ -5,6 +5,8 @@ import { getStrapiMediaUrl } from "../../lib/strapi";
 import type { Category } from "../../types/strapi";
 import type { GetStaticPathsResult } from "astro";
 
+export const prerender = true;
+
 export interface Props {
   lang: string;
   categories: Category[];
