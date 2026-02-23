@@ -10,6 +10,7 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone',
   }),
+  compressHTML: true,
   integrations: [
     tailwindcss(),
     sitemap({
@@ -37,4 +38,22 @@ export default defineConfig({
     },
   },
   site: process.env.SITE_URL || 'https://promocode.lv',
+  vite: {
+    build: {
+      cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
+    css: {
+      // Inline small CSS files
+      inline: true,
+    },
+  },
+  build: {
+    // Inline stylesheets to prevent render-blocking
+    inlineStylesheets: 'always',
+  },
 });
