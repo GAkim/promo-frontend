@@ -41,6 +41,12 @@ const noBrandsLabels: Record<string, string> = {
   ru: 'Брендов пока нет',
 };
 
+const descriptions: Record<string, string> = {
+  lv: 'Apskatiet visus zīmolus ar akciju kodiem un atlaidēm vietnē PromoCode.lv — ietaupiet naudu savos iecienītākajos veikalos.',
+  en: 'Browse all brands with promo codes and discounts on PromoCode.lv - save money at your favorite stores.',
+  ru: 'Просмотрите все бренды с промокодами и скидками на PromoCode.lv — экономьте деньги в ваших любимых магазинах.',
+};
+
 // Generate hreflang alternates for listing page
 const hreflangAlternates = ['lv', 'en', 'ru'].map((locale) => ({
   hreflang: locale,
@@ -52,7 +58,12 @@ hreflangAlternates.push({
 });
 ---
 
-<Layout title={titles[lang]} lang={lang} hreflangAlternates={hreflangAlternates}>
+<Layout
+  title={titles[lang]}
+  description={descriptions[lang]}
+  lang={lang}
+  hreflangAlternates={hreflangAlternates}
+>
   <div class="py-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-8">{titles[lang]}</h1>
 

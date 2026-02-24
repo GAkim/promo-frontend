@@ -20,7 +20,7 @@ const page = {
   title: "Sākums",
   heading: "Akciju kodi un atlaides",
   description:
-    "Atrodiet labākos akciju kodus un atlaides jūsu iecienītākajos veikalos un servisos.",
+    "PromoCode.lv is a Latvian platform for promo codes and discounts, dedicated to helping people save money.",
   cta: "Skatīt visus kodus",
 };
 
@@ -43,7 +43,12 @@ const promoCodesWithHtml = await Promise.all(
 );
 ---
 
-<Layout title={page.title} lang={lang} hreflangAlternates={hreflangAlternates}>
+<Layout
+  title={page.title}
+  description={page.description}
+  lang={lang}
+  hreflangAlternates={hreflangAlternates}
+>
   <div class="text-center py-12">
     <h1 class="text-4xl font-bold text-gray-900 mb-4">{page.heading}</h1>
     <p class="text-xl text-gray-600 mb-8">{page.description}</p>
