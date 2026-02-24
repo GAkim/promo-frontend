@@ -21,7 +21,9 @@ import {
 // This route must be server-side only (not prerendered)
 export const prerender = false;
 
-const STRAPI_URL = import.meta.env.STRAPI_URL || "http://localhost:1337";
+// STRAPI_URL can be set as either STRAPI_URL (private) or PUBLIC_STRAPI_URL (public)
+// Railway typically uses private env vars, so STRAPI_URL takes precedence
+const STRAPI_URL = import.meta.env.STRAPI_URL || import.meta.env.PUBLIC_STRAPI_URL || "http://localhost:1337";
 const STRAPI_API_TOKEN = import.meta.env.STRAPI_API_TOKEN;
 const RECAPTCHA_SECRET_KEY = import.meta.env.RECAPTCHA_SECRET_KEY;
 const IS_DEV = import.meta.env.DEV || process.env.NODE_ENV === 'development';
