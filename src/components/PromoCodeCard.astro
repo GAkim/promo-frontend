@@ -90,7 +90,7 @@ function formatExpiryDate(dateString: string | null, locale: string): string {
     {
       htmlDescription && (
         <div
-          class="text-gray-600 text-sm mb-4 prose prose-sm max-w-none"
+          class="text-gray-600 text-sm mb-4 prose prose-sm max-w-none [&>ol]:list-decimal [&>ol]:pl-6 [&>ol>li]:mb-1 [&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-1"
           set:html={htmlDescription}
         />
       )
