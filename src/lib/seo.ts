@@ -14,7 +14,8 @@ export type Locale = (typeof SITE_CONFIG.locales)[number];
 
 /**
  * Locale to hreflang code mapping
- * Google expects standard hreflang codes
+ * Uses standardized ISO 639-1 codes for sitemap and hreflang tags
+ * (Google recommends simple language codes over locale-specific codes)
  */
 const HREFLANG_MAP: Record<Locale, string> = {
   lv: 'lv',
@@ -24,7 +25,7 @@ const HREFLANG_MAP: Record<Locale, string> = {
 
 /**
  * Locale to HTML lang attribute mapping
- * Uses BCP 47 language tags for proper HTML lang
+ * Uses BCP 47 language tags for proper HTML lang attribute
  */
 const HTML_LANG_MAP: Record<Locale, string> = {
   lv: 'lv-LV',
@@ -115,6 +116,7 @@ export function generateHreflangAlternates(
 export function generateCategoryHreflang(localeSlugs: LocaleSlugs): Array<{ hreflang: string; href: string }> {
   const alternates: Array<{ hreflang: string; href: string }> = [];
 
+  // Add all language versions (lv, en, ru)
   for (const locale of SITE_CONFIG.locales) {
     const slug = localeSlugs[locale];
     if (slug) {
@@ -125,7 +127,7 @@ export function generateCategoryHreflang(localeSlugs: LocaleSlugs): Array<{ href
     }
   }
 
-  // x-default points to English for international users
+  // x-default points to Latvian (default locale)
   const defaultSlug = localeSlugs[SITE_CONFIG.hreflangDefaultLocale];
   if (defaultSlug) {
     alternates.push({
@@ -146,6 +148,7 @@ export function generateCategoryHreflang(localeSlugs: LocaleSlugs): Array<{ href
 export function generateBrandHreflang(localeSlugs: LocaleSlugs): Array<{ hreflang: string; href: string }> {
   const alternates: Array<{ hreflang: string; href: string }> = [];
 
+  // Add all language versions (lv, en, ru)
   for (const locale of SITE_CONFIG.locales) {
     const slug = localeSlugs[locale];
     if (slug) {
@@ -156,7 +159,7 @@ export function generateBrandHreflang(localeSlugs: LocaleSlugs): Array<{ hreflan
     }
   }
 
-  // x-default points to English for international users
+  // x-default points to Latvian (default locale)
   const defaultSlug = localeSlugs[SITE_CONFIG.hreflangDefaultLocale];
   if (defaultSlug) {
     alternates.push({
@@ -177,6 +180,7 @@ export function generateBrandHreflang(localeSlugs: LocaleSlugs): Array<{ hreflan
 export function generateFooterLinkHreflang(localeSlugs: LocaleSlugs): Array<{ hreflang: string; href: string }> {
   const alternates: Array<{ hreflang: string; href: string }> = [];
 
+  // Add all language versions (lv, en, ru)
   for (const locale of SITE_CONFIG.locales) {
     const slug = localeSlugs[locale];
     if (slug) {
@@ -187,12 +191,71 @@ export function generateFooterLinkHreflang(localeSlugs: LocaleSlugs): Array<{ hr
     }
   }
 
-  // x-default points to English for international users
+  // x-default points to Latvian (default locale)
   const defaultSlug = localeSlugs[SITE_CONFIG.hreflangDefaultLocale];
   if (defaultSlug) {
     alternates.push({
       hreflang: 'x-default',
       href: buildAbsoluteUrl(`/${SITE_CONFIG.hreflangDefaultLocale}/info/${defaultSlug}/`),
+    });
+  }
+
+  return alternates;
+}
+
+/**
+ * Generate complete hreflang alternates for sitemap
+ * Ensures all language variants (lv, en, ru) + x-default are present
+ *
+ * @param basePath - URL path without locale (e.g., '/categories/food-delivery/')
+ * @param localeSlugs - Optional mapping of locales to their specific slugs
+ * @param contentType - Type of content for path construction
+ * @returns Array of hreflang alternate objects with all languages
+ */
+export function generateSitemapHreflang(
+  basePath: string,
+  localeSlugs?: LocaleSlugs,
+  contentType?: 'categories' | 'brands' | 'info'
+): Array<{ hreflang: string; href: string }> {
+  const alternates: Array<{ hreflang: string; href: string }> = [];
+
+  // Add all language versions (lv, en, ru)
+  for (const locale of SITE_CONFIG.locales) {
+    let href: string;
+
+    if (localeSlugs && contentType) {
+      // Use localized slug if available
+      const slug = localeSlugs[locale];
+      if (slug) {
+        href = buildAbsoluteUrl(`/${locale}/${contentType}/${slug}/`);
+      } else {
+        // Fallback to base path for this locale
+        href = buildAbsoluteUrl(`/${locale}${basePath}`);
+      }
+    } else {
+      // Use base path for all locales
+      href = buildAbsoluteUrl(`/${locale}${basePath}`);
+    }
+
+    alternates.push({
+      hreflang: getHreflang(locale),
+      href,
+    });
+  }
+
+  // x-default points to Latvian (default locale)
+  if (localeSlugs && contentType) {
+    const defaultSlug = localeSlugs[SITE_CONFIG.hreflangDefaultLocale];
+    if (defaultSlug) {
+      alternates.push({
+        hreflang: 'x-default',
+        href: buildAbsoluteUrl(`/${SITE_CONFIG.hreflangDefaultLocale}/${contentType}/${defaultSlug}/`),
+      });
+    }
+  } else {
+    alternates.push({
+      hreflang: 'x-default',
+      href: buildAbsoluteUrl(`/${SITE_CONFIG.hreflangDefaultLocale}${basePath}`),
     });
   }
 

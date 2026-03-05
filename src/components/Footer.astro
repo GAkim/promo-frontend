@@ -1,5 +1,5 @@
 ---
-import type { FooterLink } from '../types/strapi';
+import type { FooterLink } from "../types/strapi";
 
 interface Props {
   lang: string;
@@ -9,9 +9,9 @@ interface Props {
 const { lang, footerLinks } = Astro.props;
 
 const footerText = {
-  lv: "© 2025 PromoCode.lv. Visas tiesības aizsargātas.",
-  en: "© 2025 PromoCode.lv. All rights reserved.",
-  ru: "© 2025 PromoCode.lv. Все права защищены.",
+  lv: "© 2026 PromoCode.lv. Visas tiesības aizsargātas.",
+  en: "© 2026 PromoCode.lv. All rights reserved.",
+  ru: "© 2026 PromoCode.lv. Все права защищены.",
 };
 ---
 
@@ -21,14 +21,18 @@ const footerText = {
       <p class="text-gray-600 text-sm">{footerText[lang]}</p>
 
       <div class="flex space-x-4">
-        {footerLinks.filter((link) => link.slug).map((link) => (
-          <a
-            href={`/${lang}/info/${link.slug}`}
-            class="text-gray-600 hover:text-gray-900 text-sm"
-          >
-            {link.header}
-          </a>
-        ))}
+        {
+          footerLinks
+            .filter((link) => link.slug)
+            .map((link) => (
+              <a
+                href={`/${lang}/info/${link.slug}`}
+                class="text-gray-600 hover:text-gray-900 text-sm"
+              >
+                {link.header}
+              </a>
+            ))
+        }
       </div>
     </div>
   </div>

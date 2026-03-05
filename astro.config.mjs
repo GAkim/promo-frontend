@@ -14,17 +14,18 @@ export default defineConfig({
   integrations: [
     tailwindcss(),
     sitemap({
+      // Basic defaults - will be overridden by post-build script for specific pages
       changefreq: 'daily',
       priority: 0.5,
       // Filter out root path if it's just a redirect
       filter: (page) => page !== 'https://promocode.lv/',
-      // Add hreflang alternates for multilingual pages
+      // Use standardized hreflang codes (lv, en, ru)
       i18n: {
         defaultLocale: 'lv',
         locales: {
-          lv: 'lv-LV',
-          en: 'en-US',
-          ru: 'ru-RU',
+          lv: 'lv',
+          en: 'en',
+          ru: 'ru',
         },
       },
     }),
