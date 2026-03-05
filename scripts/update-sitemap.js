@@ -218,50 +218,70 @@ for (const entry of urlEntries) {
   entryByPath.set(entry.path, entry);
 }
 
-// Build new sitemap content with ONE url entry per hreflang group (using Latvian as canonical)
+// Build new sitemap content with ONE url entry per language version
+// Each entry includes the complete hreflang cluster
 const newUrlEntries = [];
 
 for (const [basePath, { alternates, xDefaultHref }] of hreflangGroups.entries()) {
-  // The Latvian URL is the canonical
   const lvPath = alternates['lv'] || `/${DEFAULT_LOCALE}${basePath}`;
+  const enPath = alternates['en'] || `/en${basePath}`;
+  const ruPath = alternates['ru'] || `/ru${basePath}`;
+  const xDefaultPath = xDefaultHref || lvPath;
 
-  // Get entry data for the Latvian path (or use first available alternate)
-  let canonicalEntry = entryByPath.get(lvPath);
-  if (!canonicalEntry) {
-    // Try to find any available alternate
-    for (const locale of ['en', 'ru']) {
-      const altPath = alternates[locale];
-      if (altPath && entryByPath.has(altPath)) {
-        canonicalEntry = entryByPath.get(altPath);
-        break;
-      }
-    }
-  }
+  // Get entry data for each language (use Latvian as fallback for metadata)
+  const lvEntry = entryByPath.get(lvPath);
+  const enEntry = entryByPath.get(enPath);
+  const ruEntry = entryByPath.get(ruPath);
+  const baseEntry = lvEntry || enEntry || ruEntry;
 
-  // If still no entry, create a default one
-  if (!canonicalEntry) {
-    canonicalEntry = {
-      path: lvPath,
-      lastmod: today,
-      changefreq: 'weekly',
-      priority: '0.5',
-    };
-  }
-
-  const pageType = getPageType(canonicalEntry.path);
+  // Get page type and config from Latvian entry
+  const pageType = getPageType(lvPath);
   const typeConfig = PAGE_TYPE_CONFIG[pageType] || { priority: 0.5, changefreq: 'monthly' };
 
-  const hreflangTags = basePathHreflangTags.get(basePath) || '';
+  // Build hreflang tags for this cluster
+  const hreflangTags = [
+    `<xhtml:link rel="alternate" hreflang="lv" href="https://promocode.lv${lvPath}"/>`,
+    `<xhtml:link rel="alternate" hreflang="en" href="https://promocode.lv${enPath}"/>`,
+    `<xhtml:link rel="alternate" hreflang="ru" href="https://promocode.lv${ruPath}"/>`,
+    `<xhtml:link rel="alternate" hreflang="x-default" href="https://promocode.lv${xDefaultPath}"/>`,
+  ].join('');
 
+  // Create entry for Latvian version
   newUrlEntries.push(
     `<url>
   <loc>https://promocode.lv${lvPath}</loc>
-  <lastmod>${canonicalEntry.lastmod}</lastmod>
+  <lastmod>${lvEntry?.lastmod || baseEntry?.lastmod || today}</lastmod>
   <changefreq>${typeConfig.changefreq}</changefreq>
   <priority>${typeConfig.priority}</priority>
   ${hreflangTags}
 </url>`
   );
+
+  // Create entry for English version (if it exists)
+  if (enEntry || enPath !== `/en${basePath}`) {
+    newUrlEntries.push(
+      `<url>
+  <loc>https://promocode.lv${enPath}</loc>
+  <lastmod>${enEntry?.lastmod || baseEntry?.lastmod || today}</lastmod>
+  <changefreq>${typeConfig.changefreq}</changefreq>
+  <priority>${typeConfig.priority}</priority>
+  ${hreflangTags}
+</url>`
+    );
+  }
+
+  // Create entry for Russian version (if it exists)
+  if (ruEntry || ruPath !== `/ru${basePath}`) {
+    newUrlEntries.push(
+      `<url>
+  <loc>https://promocode.lv${ruPath}</loc>
+  <lastmod>${ruEntry?.lastmod || baseEntry?.lastmod || today}</lastmod>
+  <changefreq>${typeConfig.changefreq}</changefreq>
+  <priority>${typeConfig.priority}</priority>
+  ${hreflangTags}
+</url>`
+    );
+  }
 }
 
 // Replace the entire URL section in the sitemap
@@ -275,16 +295,15 @@ writeFileSync(sitemapPath, newSitemapContent, 'utf-8');
 // Log summary
 const typeCounts = {};
 for (const [basePath] of hreflangGroups.entries()) {
-  // Use the Latvian path for type detection
   const lvPath = `/lv${basePath}`;
   const pageType = getPageType(lvPath);
   typeCounts[pageType] = (typeCounts[pageType] || 0) + 1;
 }
 
 console.log('✓ Sitemap updated successfully');
-console.log(`  Total URL entries: ${newUrlEntries.length} (one per logical page)`);
+console.log(`  Total URL entries: ${newUrlEntries.length} (all language versions)`);
+console.log(`  Logical pages: ${hreflangGroups.size}`);
 console.log(`  Pages by type:`, typeCounts);
-console.log(`  Hreflang clusters: ${hreflangGroups.size}`);
 console.log('');
 console.log('Priority & changefreq rules applied:');
 console.log('  - Homepage: 1.0 (daily)');
