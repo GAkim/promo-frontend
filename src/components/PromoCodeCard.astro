@@ -43,9 +43,9 @@ function formatExpiryDate(dateString: string | null, locale: string): string {
 ---
 
 <div
-  class="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+  class="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full"
 >
-  <div class="p-6">
+  <div class="p-6 flex flex-col flex-1">
     <!-- Header with logo -->
     <div class="flex items-center gap-4 mb-4">
       {
@@ -71,18 +71,20 @@ function formatExpiryDate(dateString: string | null, locale: string): string {
     </div>
 
     <!-- Code with copy button -->
-    <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-3 mb-4">
-      <code class="flex-1 text-lg font-mono font-bold text-blue-600"
-        >{promo.code}</code
-      >
-      <button
-        type="button"
-        onclick={`navigator.clipboard.writeText('${promo.code}').then(() => alert('${copyLabels[lang]}: ${promo.code}'));`}
-        class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-xs font-medium whitespace-nowrap"
-      >
-        {copyLabels[lang]}
-      </button>
-    </div>
+    {promo.code && (
+      <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-3 mb-4">
+        <code class="flex-1 text-lg font-mono font-bold text-blue-600"
+          >{promo.code}</code
+        >
+        <button
+          type="button"
+          onclick={`navigator.clipboard.writeText('${promo.code}').then(() => alert('${copyLabels[lang]}: ${promo.code}'));`}
+          class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-xs font-medium whitespace-nowrap"
+        >
+          {copyLabels[lang]}
+        </button>
+      </div>
+    )}
 
     <!-- Description -->
     {
@@ -111,7 +113,7 @@ function formatExpiryDate(dateString: string | null, locale: string): string {
     }
 
     <!-- Actions -->
-    <div class="flex gap-2">
+    <div class="flex gap-2 mt-auto">
       {
         promo.affiliateLink && (
           <a
