@@ -41,7 +41,11 @@ const {
 
 const titleSpec = `${title} | PromoCode.lv`;
 const siteUrl = SITE_CONFIG.url;
-const canonical = canonicalUrl ? new URL(canonicalUrl, siteUrl).href : siteUrl;
+
+// Build canonical URL: preserve trailing slashes from Astro.url.pathname
+const canonical = canonicalUrl
+  ? new URL(canonicalUrl, siteUrl).href
+  : siteUrl;
 const ogImageUrl = ogImage || `${siteUrl}/og-image.png`;
 const htmlLang = getHtmlLang(lang as "lv" | "en" | "ru");
 const ogLocale = getOgLocale(lang as "lv" | "en" | "ru");

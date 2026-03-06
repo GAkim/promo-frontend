@@ -297,18 +297,14 @@ export function generateSitemapHreflang(
 /**
  * Generate canonical URL for current page
  * Always points to current language version
- * Ensures trailing slash consistency
+ * Preserves trailing slashes from the input path
  *
- * @param currentPath - Current URL path (e.g., '/lv/categories/ediena-piegade')
- * @returns Absolute canonical URL with trailing slash
+ * @param currentPath - Current URL path (e.g., '/lv/categories/ediena-piegade/')
+ * @returns Absolute canonical URL with trailing slash preserved
  */
 export function generateCanonicalUrl(currentPath: string): string {
-  // Ensure path ends with trailing slash (except for root)
-  let normalizedPath = currentPath;
-  if (!normalizedPath.endsWith('/') && normalizedPath !== '/') {
-    normalizedPath += '/';
-  }
-  return buildAbsoluteUrl(normalizedPath);
+  // Preserve the path as-is (Astro.url.pathname already has trailing slashes)
+  return buildAbsoluteUrl(currentPath);
 }
 
 /**
