@@ -43,9 +43,21 @@ function formatExpiryDate(dateString: string | null, locale: string): string {
 ---
 
 <div
-  class="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full"
+  class="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full relative"
 >
-  <div class="p-6 flex flex-col flex-1">
+  <!-- Info button (top right corner) -->
+  <a
+    href={`/${lang}/promocode/${promo.slug}/`}
+    class="absolute top-3 right-3 w-6 h-6 rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-600 flex items-center justify-center transition-colors"
+    title="View details"
+    aria-label="View promo code details"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </a>
+
+  <div class="p-6 flex flex-col flex-1 pt-12">
     <!-- Header with logo -->
     <div class="flex items-center gap-4 mb-4">
       {

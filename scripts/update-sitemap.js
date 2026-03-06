@@ -45,6 +45,11 @@ const PAGE_TYPE_CONFIG = {
     changefreq: 'daily',
     pattern: /^\/(lv|en|ru)\/promo-codes\/?$/,
   },
+  promo_detail: {
+    priority: 0.6,
+    changefreq: 'daily',
+    pattern: /^\/(lv|en|ru)\/promocode\/.+\/$/,
+  },
   info: {
     priority: 0.3,
     changefreq: 'yearly',
@@ -309,5 +314,6 @@ console.log('Priority & changefreq rules applied:');
 console.log('  - Homepage: 1.0 (daily)');
 console.log('  - Categories: 0.8 (weekly)');
 console.log('  - Brands: 0.7 (weekly)');
-console.log('  - Promo codes: 0.7 (daily)');
+console.log('  - Promo codes (listing): 0.7 (daily)');
+console.log('  - Promo codes (detail): 0.6 (daily)');
 console.log('  - Info pages: 0.3 (yearly)');

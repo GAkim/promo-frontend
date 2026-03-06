@@ -204,6 +204,38 @@ export function generateFooterLinkHreflang(localeSlugs: LocaleSlugs): Array<{ hr
 }
 
 /**
+ * Generate hreflang alternates for promo code pages
+ *
+ * @param localeSlugs - Mapping of locales to promo code slugs
+ * @returns Array of hreflang alternate objects
+ */
+export function generatePromoCodeHreflang(localeSlugs: LocaleSlugs): Array<{ hreflang: string; href: string }> {
+  const alternates: Array<{ hreflang: string; href: string }> = [];
+
+  // Add all language versions (lv, en, ru)
+  for (const locale of SITE_CONFIG.locales) {
+    const slug = localeSlugs[locale];
+    if (slug) {
+      alternates.push({
+        hreflang: getHreflang(locale),
+        href: buildAbsoluteUrl(`/${locale}/promocode/${slug}/`),
+      });
+    }
+  }
+
+  // x-default points to Latvian (default locale)
+  const defaultSlug = localeSlugs[SITE_CONFIG.hreflangDefaultLocale];
+  if (defaultSlug) {
+    alternates.push({
+      hreflang: 'x-default',
+      href: buildAbsoluteUrl(`/${SITE_CONFIG.hreflangDefaultLocale}/promocode/${defaultSlug}/`),
+    });
+  }
+
+  return alternates;
+}
+
+/**
  * Generate complete hreflang alternates for sitemap
  * Ensures all language variants (lv, en, ru) + x-default are present
  *

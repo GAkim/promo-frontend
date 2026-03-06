@@ -180,6 +180,25 @@ export async function getPromoCodeBySlug(
 }
 
 /**
+ * Get a promo code by documentId and locale
+ */
+export async function getPromoCodeByDocumentId(
+  documentId: string,
+  locale: string
+): Promise<PromoCode | null> {
+  const params: StrapiQueryParams = {
+    locale,
+    populate: '*',
+    filters: {
+      documentId: { $eq: documentId },
+    },
+  };
+
+  const response = await fetchStrapi<StrapiResponse<PromoCode[]>>('promo-codes', params);
+  return response?.data?.[0] || null;
+}
+
+/**
  * Get all brands with populated logos
  */
 export async function getBrands(locale: string): Promise<Brand[]> {

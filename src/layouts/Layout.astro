@@ -8,6 +8,7 @@ import {
   generateCategoryHreflang,
   generateBrandHreflang,
   generateFooterLinkHreflang,
+  generatePromoCodeHreflang,
   generateCanonicalUrl,
   getHtmlLang,
 } from "../lib/seo";
@@ -19,7 +20,7 @@ interface Props {
   lang: string;
   localeSlugs?: LocaleSlugs;
   documentId?: string;
-  contentType?: "categories" | "brands" | "footer-links";
+  contentType?: "categories" | "brands" | "footer-links" | "promo-codes";
   ogImage?: string;
   ogType?: string;
   isListingPage?: boolean;
@@ -53,6 +54,8 @@ if (passedHreflangAlternates) {
     hreflangAlternates = generateBrandHreflang(localeSlugs);
   } else if (contentType === "footer-links") {
     hreflangAlternates = generateFooterLinkHreflang(localeSlugs);
+  } else if (contentType === "promo-codes") {
+    hreflangAlternates = generatePromoCodeHreflang(localeSlugs);
   }
 } else if (isListingPage && contentType) {
   // Listing page - generate alternates from current path

@@ -6,7 +6,7 @@ interface Props {
   lang: string;
   localeSlugs?: LocaleSlugs;
   documentId?: string;
-  contentType?: 'categories' | 'brands' | 'footer-links';
+  contentType?: 'categories' | 'brands' | 'footer-links' | 'promo-codes';
 }
 
 const { lang, localeSlugs, documentId, contentType } = Astro.props;
@@ -50,6 +50,9 @@ function getLocalizedPath(targetLang: string): string {
       }
       if (contentType === 'footer-links') {
         return `/${targetLang}/info/${localizedSlug}`;
+      }
+      if (contentType === 'promo-codes') {
+        return `/${targetLang}/promocode/${localizedSlug}`;
       }
     }
   }
