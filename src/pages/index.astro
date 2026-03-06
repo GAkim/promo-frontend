@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
 import PromoCodeCard from "../components/PromoCodeCard.astro";
 import { getPromoCodes } from "../lib/strapi";
 import { markdownToHtml } from "../lib/markdown";
@@ -49,6 +50,10 @@ const promoCodesWithHtml = await Promise.all(
   lang={lang}
   hreflangAlternates={hreflangAlternates}
 >
+  <div class="py-2">
+    <!-- Breadcrumbs -->
+    <Breadcrumbs lang={lang} items={[{ label: page.title, href: undefined }]} />
+  </div>
   <div class="text-center py-12">
     <h1 class="text-4xl font-bold text-gray-900 mb-4">{page.heading}</h1>
     <p class="text-xl text-gray-600 mb-8">{page.description}</p>

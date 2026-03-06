@@ -1,6 +1,7 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import ContactForm from "../../../components/ContactForm.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import {
   getFooterLinkBySlug,
   getFooterLinks,
@@ -100,7 +101,13 @@ const pageDescription = footerLink?.seoMetaDescription;
 >
   {
     footerLink ? (
-      <article class="max-w-3xl mx-auto py-8">
+      <article class="max-w-3xl mx-auto py-2">
+        <!-- Breadcrumbs -->
+        <Breadcrumbs
+          lang={lang}
+          items={[{ label: footerLink.header, href: undefined }]}
+        />
+
         <h1 class="text-4xl font-bold text-gray-900 mb-8">
           {footerLink.header}
         </h1>

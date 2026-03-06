@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import { getPromoCodes, getStrapiMediaUrl, getPromoCodeBySlug, getPromoCodeByDocumentId } from '../../../lib/strapi';
 import { markdownToHtml } from '../../../lib/markdown';
 import type { PromoCode } from '../../../types/strapi';
@@ -64,6 +65,12 @@ const backLabels: Record<string, string> = {
   ru: 'Назад к промокодам',
 };
 
+const breadcrumbLabels: Record<string, string> = {
+  lv: 'Akcijas kodi',
+  en: 'Promo Codes',
+  ru: 'Промокоды',
+};
+
 const copyLabels: Record<string, string> = {
   lv: 'Kopēt',
   en: 'Copy',
@@ -114,14 +121,15 @@ const htmlDescription = promo?.description ? await markdownToHtml(promo.descript
   contentType="promo-codes"
 >
   {promo ? (
-    <div class="py-8 max-w-4xl mx-auto">
-      <!-- Back link -->
-      <a href={`/${lang}/promo-codes`} class="inline-flex items-center text-blue-600 hover:underline mb-6">
-        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        {backLabels[lang]}
-      </a>
+    <div class="py-2 max-w-4xl mx-auto pb-12">
+      <!-- Breadcrumbs -->
+      <Breadcrumbs
+        lang={lang}
+        items={[
+          { label: breadcrumbLabels[lang], href: `/${lang}/promo-codes` },
+          { label: promo.title, href: undefined }
+        ]}
+      />
 
       <!-- Main promo code card -->
       <div class="bg-white rounded-lg shadow-sm border p-8 mb-8">

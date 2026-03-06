@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import PromoCodeCard from '../../../components/PromoCodeCard.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import { getBrands, getPromoCodes, getStrapiMediaUrl, getBrandByDocumentId } from '../../../lib/strapi';
 import { markdownToHtml } from '../../../lib/markdown';
 import type { Brand, PromoCode } from '../../../types/strapi';
@@ -84,6 +85,12 @@ const backLabels: Record<string, string> = {
   ru: 'Назад к брендам',
 };
 
+const breadcrumbLabels: Record<string, string> = {
+  lv: 'Zīmoli',
+  en: 'Brands',
+  ru: 'Бренды',
+};
+
 // Pre-render markdown descriptions
 const promoCodesWithHtml = await Promise.all(
   promoCodes.map(async (promo) => ({
@@ -102,7 +109,16 @@ const promoCodesWithHtml = await Promise.all(
   contentType="brands"
 >
   {brand ? (
-    <div class="py-8">
+    <div class="py-2">
+      <!-- Breadcrumbs -->
+      <Breadcrumbs
+        lang={lang}
+        items={[
+          { label: breadcrumbLabels[lang], href: `/${lang}/brands` },
+          { label: brand.name, href: undefined }
+        ]}
+      />
+
       <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
         <div class="flex flex-col items-center text-center">
           {brand.logo ? (

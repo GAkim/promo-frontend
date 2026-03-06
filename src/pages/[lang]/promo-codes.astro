@@ -1,10 +1,11 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PromoCodeCard from '../../components/PromoCodeCard.astro';
-import { getPromoCodes } from '../../lib/strapi';
-import { markdownToHtml } from '../../lib/markdown';
-import type { PromoCode } from '../../types/strapi';
-import type { GetStaticPathsResult } from 'astro';
+import Layout from "../../layouts/Layout.astro";
+import PromoCodeCard from "../../components/PromoCodeCard.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { getPromoCodes } from "../../lib/strapi";
+import { markdownToHtml } from "../../lib/markdown";
+import type { PromoCode } from "../../types/strapi";
+import type { GetStaticPathsResult } from "astro";
 
 export const prerender = true;
 
@@ -19,12 +20,14 @@ const { lang, promoCodes } = Astro.props;
 const promoCodesWithHtml = await Promise.all(
   promoCodes.map(async (promo) => ({
     ...promo,
-    htmlDescription: promo.description ? await markdownToHtml(promo.description) : null,
-  }))
+    htmlDescription: promo.description
+      ? await markdownToHtml(promo.description)
+      : null,
+  })),
 );
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
-  const locales = ['lv', 'en', 'ru'] as const;
+  const locales = ["lv", "en", "ru"] as const;
   const paths: GetStaticPathsResult = [];
 
   for (const locale of locales) {
@@ -39,42 +42,64 @@ export async function getStaticPaths(): Promise<GetStaticPathsResult> {
 }
 
 const titles: Record<string, string> = {
-  lv: 'Akcijas kodi',
-  en: 'Promo Codes',
-  ru: 'Промокоды',
+  lv: "Akcijas kodi",
+  en: "Promo Codes",
+  ru: "Промокоды",
 };
 
 const noCodesLabels: Record<string, string> = {
-  lv: 'Pašlaik nav akciju kodu',
-  en: 'No promo codes available',
-  ru: 'Промокодов пока нет',
+  lv: "Pašlaik nav akciju kodu",
+  en: "No promo codes available",
+  ru: "Промокодов пока нет",
+};
+
+const breadcrumbLabels: Record<string, string> = {
+  lv: "Akcijas kodi",
+  en: "Promo Codes",
+  ru: "Промокоды",
 };
 
 // Generate hreflang alternates for listing page
-const hreflangAlternates = ['lv', 'en', 'ru'].map((locale) => ({
+const hreflangAlternates = ["lv", "en", "ru"].map((locale) => ({
   hreflang: locale,
   href: `https://promocode.lv/${locale}/promo-codes/`,
 }));
 hreflangAlternates.push({
-  hreflang: 'x-default',
-  href: 'https://promocode.lv/lv/promo-codes/',
+  hreflang: "x-default",
+  href: "https://promocode.lv/lv/promo-codes/",
 });
 ---
 
-<Layout title={titles[lang]} lang={lang} hreflangAlternates={hreflangAlternates}>
-  <div class="py-8">
+<Layout
+  title={titles[lang]}
+  lang={lang}
+  hreflangAlternates={hreflangAlternates}
+>
+  <div class="py-2">
+    <!-- Breadcrumbs -->
+    <Breadcrumbs
+      lang={lang}
+      items={[{ label: breadcrumbLabels[lang], href: undefined }]}
+    />
+
     <h1 class="text-3xl font-bold text-gray-900 mb-8">{titles[lang]}</h1>
 
-    {promoCodes.length === 0 ? (
-      <div class="text-center text-gray-500 py-12">
-        <p class="text-lg">{noCodesLabels[lang]}</p>
-      </div>
-    ) : (
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {promoCodesWithHtml.map((promo) => (
-          <PromoCodeCard promo={promo} lang={lang} htmlDescription={promo.htmlDescription} />
-        ))}
-      </div>
-    )}
+    {
+      promoCodes.length === 0 ? (
+        <div class="text-center text-gray-500 py-12">
+          <p class="text-lg">{noCodesLabels[lang]}</p>
+        </div>
+      ) : (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {promoCodesWithHtml.map((promo) => (
+            <PromoCodeCard
+              promo={promo}
+              lang={lang}
+              htmlDescription={promo.htmlDescription}
+            />
+          ))}
+        </div>
+      )
+    }
   </div>
 </Layout>

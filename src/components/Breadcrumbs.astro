@@ -1,0 +1,74 @@
+---
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+  lang: string;
+}
+
+const { items, lang } = Astro.props;
+
+const homeLabels: Record<string, string> = {
+  lv: "Sākums",
+  en: "Home",
+  ru: "Главная",
+};
+---
+
+<nav
+  aria-label="breadcrumb"
+  class="flex items-center text-sm text-gray-600 mb-6"
+  aria-label="Breadcrumb"
+>
+  <ol class="flex items-center space-x-2">
+    <!-- Home link -->
+    <li>
+      <a
+        href={`/${lang}/`}
+        class="hover:text-blue-600 transition-colors"
+        aria-label={homeLabels[lang]}
+      >
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
+          ></path>
+        </svg>
+      </a>
+    </li>
+
+    <!-- Breadcrumb items -->
+    {
+      items.map((item, index) => (
+        <>
+          <li>
+            <svg
+              class="w-4 h-4 mx-2 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </li>
+          <li>
+            {item.href ? (
+              <a href={item.href} class="hover:text-blue-600 transition-colors">
+                {item.label}
+              </a>
+            ) : (
+              <span class="text-gray-900 font-medium" aria-current="page">
+                {item.label}
+              </span>
+            )}
+          </li>
+        </>
+      ))
+    }
+  </ol>
+</nav>

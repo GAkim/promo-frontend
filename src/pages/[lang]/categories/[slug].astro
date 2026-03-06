@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import PromoCodeCard from '../../../components/PromoCodeCard.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import { getCategoryBySlug, getPromoCodes, getStrapiMediaUrl, getCategories, getCategoryByDocumentId } from '../../../lib/strapi';
 import { markdownToHtml } from '../../../lib/markdown';
 import type { Category, PromoCode } from '../../../types/strapi';
@@ -84,6 +85,12 @@ const backLabels: Record<string, string> = {
   ru: 'Назад к категориям',
 };
 
+const breadcrumbLabels: Record<string, string> = {
+  lv: 'Kategorijas',
+  en: 'Categories',
+  ru: 'Категории',
+};
+
 // Pre-render markdown descriptions
 const promoCodesWithHtml = await Promise.all(
   promoCodes.map(async (promo) => ({
@@ -102,7 +109,16 @@ const promoCodesWithHtml = await Promise.all(
   contentType="categories"
 >
   {category ? (
-    <div class="py-8">
+    <div class="py-2">
+      <!-- Breadcrumbs -->
+      <Breadcrumbs
+        lang={lang}
+        items={[
+          { label: breadcrumbLabels[lang], href: `/${lang}/categories` },
+          { label: category.name, href: undefined }
+        ]}
+      />
+
       <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
         <div class="flex items-center gap-4 mb-4">
           {category.logo ? (
